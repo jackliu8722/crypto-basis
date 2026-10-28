@@ -3,6 +3,12 @@ import { api, type Transaction } from '../api';
 import { fmtUsdt, fmtQty, fmtPrice, fmtTime } from '../format';
 
 const TYPE_LABEL: Record<string, string> = { BUY: '买入', SELL: '卖出', DEPOSIT: '入金', WITHDRAW: '出金' };
+const TYPE_CLASS: Record<string, string> = {
+  BUY: 'badge badge-buy',
+  SELL: 'badge badge-sell',
+  DEPOSIT: 'badge badge-cash',
+  WITHDRAW: 'badge badge-cash',
+};
 
 export default function TransactionList({
   transactions,
@@ -33,11 +39,15 @@ export default function TransactionList({
     <section>
       <header className="section-head">
         <h2>流水</h2>
-        <input
-          placeholder="按币种筛选"
-          value={filter}
-          onChange={(e) => setFilter(e.target.value.toUpperCase())}
-        />
+        <label className="field" style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <span>按币种筛选</span>
+          <input
+            style={{ width: 110 }}
+            placeholder="BTC"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value.toUpperCase())}
+          />
+        </label>
       </header>
       {undone && (
         <p className="warn">
@@ -61,14 +71,18 @@ export default function TransactionList({
           {rows.map((t) => (
             <tr key={t.id}>
               <td>{fmtTime(t.ts)}</td>
-              <td className={t.type === 'BUY' ? 'down' : t.type === 'SELL' ? 'up' : ''}>{TYPE_LABEL[t.type]}</td>
+              <td>
+                <span className={TYPE_CLASS[t.type]}>{TYPE_LABEL[t.type]}</span>
+              </td>
               <td>{t.symbol ?? '—'}</td>
               <td className="num">{fmtQty(t.quantity)}</td>
               <td className="num">{t.quantity ? fmtPrice(t.total_usdt / t.quantity) : '—'}</td>
               <td className="num">{fmtUsdt(t.total_usdt)}</td>
               <td>{t.note ?? ''}</td>
               <td>
-                <button onClick={() => remove(t)}>删除</button>
+                <button className="danger" onClick={() => remove(t)}>
+                  删除
+                </button>
               </td>
             </tr>
           ))}

@@ -4,6 +4,13 @@ import { fmtPrice } from '../format';
 
 type Type = 'BUY' | 'SELL' | 'DEPOSIT' | 'WITHDRAW';
 
+const TYPES: { value: Type; label: string }[] = [
+  { value: 'BUY', label: '买入' },
+  { value: 'SELL', label: '卖出' },
+  { value: 'DEPOSIT', label: '入金' },
+  { value: 'WITHDRAW', label: '出金' },
+];
+
 export default function TransactionForm({ onDone, onError }: { onDone: () => void; onError: (m: string) => void }) {
   const [type, setType] = useState<Type>('BUY');
   const [symbol, setSymbol] = useState('');
@@ -40,29 +47,79 @@ export default function TransactionForm({ onDone, onError }: { onDone: () => voi
 
   return (
     <form onSubmit={submit} className="form">
-      <select value={type} onChange={(e) => setType(e.target.value as Type)}>
-        <option value="BUY">买入</option>
-        <option value="SELL">卖出</option>
-        <option value="DEPOSIT">入金</option>
-        <option value="WITHDRAW">出金</option>
-      </select>
+      <div className="field">
+        <span>类型</span>
+        <div className="type-switch">
+          {TYPES.map((t) => (
+            <button
+              key={t.value}
+              type="button"
+              className={type === t.value ? 'active' : ''}
+              onClick={() => setType(t.value)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {isTrade && (
         <>
-          <input placeholder="币种 如 BTC" value={symbol} onChange={(e) => setSymbol(e.target.value)} required />
-          <input
-            placeholder="数量"
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
-            inputMode="decimal"
-            required
-          />
+          <label className="field">
+            <span>币种</span>
+            <input
+              placeholder="BTC"
+              value={symbol}
+              onChange={(e) => setSymbol(e.target.value)}
+              style={{ width: 110 }}
+              required
+            />
+          </label>
+          <label className="field">
+            <span>数量</span>
+            <input
+              placeholder="0.00"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              inputMode="decimal"
+              style={{ width: 130 }}
+              required
+            />
+          </label>
         </>
       )}
-      <input placeholder="USDT 金额" value={total} onChange={(e) => setTotal(e.target.value)} inputMode="decimal" required />
-      <input type="datetime-local" value={ts} onChange={(e) => setTs(e.target.value)} />
-      <input placeholder="备注（可选）" value={note} onChange={(e) => setNote(e.target.value)} />
-      <button type="submit">记录</button>
-      {unitPrice != null && <span className="muted">单价 {fmtPrice(unitPrice)} USDT</span>}
+
+      <label className="field">
+        <span>USDT 金额</span>
+        <input
+          placeholder="0.00"
+          value={total}
+          onChange={(e) => setTotal(e.target.value)}
+          inputMode="decimal"
+          style={{ width: 140 }}
+          required
+        />
+      </label>
+
+      <label className="field">
+        <span>时间（默认现在）</span>
+        <input type="datetime-local" value={ts} onChange={(e) => setTs(e.target.value)} />
+      </label>
+
+      <label className="field">
+        <span>备注</span>
+        <input placeholder="可选" value={note} onChange={(e) => setNote(e.target.value)} style={{ width: 140 }} />
+      </label>
+
+      <button type="submit" className="primary">
+        记录
+      </button>
+
+      {unitPrice != null && (
+        <span className="muted" style={{ alignSelf: 'flex-end', paddingBottom: 8 }}>
+          单价 {fmtPrice(unitPrice)} USDT
+        </span>
+      )}
     </form>
   );
 }

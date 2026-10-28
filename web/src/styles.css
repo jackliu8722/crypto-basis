@@ -1,11 +1,16 @@
 :root {
+  /* 关键：让浏览器原生控件（下拉、日期选择器、滚动条）跟随深色，否则会是白底黑字 */
+  color-scheme: dark;
+
   --bg: #0b0e11;
   --panel: #181a20;
+  --panel-2: #1e222a;
   --border: #2b3139;
   --text: #eaecef;
-  --muted: #848e9c;
+  --muted: #9aa4b2;
   --up: #0ecb81;
   --down: #f6465d;
+  --accent: #2f6fed;
 }
 
 * {
@@ -27,16 +32,17 @@ main {
 
 h1 {
   font-size: 20px;
-  margin: 0 0 20px;
+  margin: 0 0 4px;
 }
 
 h2 {
-  font-size: 16px;
+  font-size: 15px;
   margin: 0;
+  color: var(--text);
 }
 
 section {
-  margin-bottom: 28px;
+  margin-bottom: 30px;
 }
 
 .section-head {
@@ -45,20 +51,24 @@ section {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
 }
+
+/* ---------- 汇总卡片 ---------- */
 
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 10px;
-  margin-bottom: 24px;
+  margin-bottom: 26px;
 }
 
 .card {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 12px 14px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -70,9 +80,12 @@ section {
 }
 
 .card-value {
-  font-size: 18px;
+  font-size: 19px;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
+
+/* ---------- 通用文字 ---------- */
 
 .up {
   color: var(--up);
@@ -95,18 +108,114 @@ section {
 .warn {
   grid-column: 1 / -1;
   background: rgba(246, 70, 93, 0.12);
-  border: 1px solid rgba(246, 70, 93, 0.4);
-  color: #ffb3bd;
+  border: 1px solid rgba(246, 70, 93, 0.45);
+  color: #ffc2ca;
   border-radius: 6px;
-  padding: 8px 12px;
+  padding: 9px 12px;
   margin: 0;
-  cursor: pointer;
 }
 
 .warn-inline {
-  color: #ffb3bd;
+  color: #ffc2ca;
   font-size: 12px;
 }
+
+/* ---------- 表单 ---------- */
+
+.form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.field > span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+input,
+button {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 11px;
+  font: inherit;
+  min-height: 34px;
+}
+
+input::placeholder {
+  color: #6b7684;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* 深色页面下日期选择器的图标默认是黑色的，反色才看得见 */
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.75);
+  cursor: pointer;
+}
+
+button {
+  cursor: pointer;
+  background: #2b3139;
+  border-color: #39404a;
+}
+
+button:hover {
+  background: #3a4149;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 500;
+}
+
+button.primary:hover {
+  background: #4478f0;
+}
+
+/* 类型切换：用分段按钮替代下拉，选项一眼可见 */
+.type-switch {
+  display: flex;
+  gap: 6px;
+}
+
+.type-switch button {
+  min-width: 62px;
+  color: var(--muted);
+}
+
+.type-switch button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 500;
+}
+
+/* ---------- 表格 ---------- */
 
 table {
   width: 100%;
@@ -119,7 +228,7 @@ table {
 
 th,
 td {
-  padding: 8px 10px;
+  padding: 10px 12px;
   text-align: left;
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
@@ -129,6 +238,15 @@ th {
   color: var(--muted);
   font-weight: 500;
   font-size: 12px;
+  background: var(--panel-2);
+}
+
+tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+tbody tr:hover {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 tbody tr:last-child td {
@@ -142,53 +260,47 @@ tbody tr:last-child td {
 
 .row-cash td {
   color: var(--muted);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .row-bad {
   background: rgba(246, 70, 93, 0.08);
 }
 
-.form {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 16px;
+/* 类型标签 */
+.badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.6;
 }
 
-input,
-select,
-button {
-  background: #0b0e11;
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 7px 10px;
-  font: inherit;
+.badge-buy {
+  background: rgba(246, 70, 93, 0.16);
+  color: #f6465d;
 }
 
-input:focus,
-select:focus {
-  outline: none;
-  border-color: #4a5568;
+.badge-sell {
+  background: rgba(14, 203, 129, 0.16);
+  color: #0ecb81;
 }
 
-button {
-  cursor: pointer;
-  background: #2b3139;
+.badge-cash {
+  background: rgba(154, 164, 178, 0.16);
+  color: #b7bdc7;
 }
 
-button:hover {
-  background: #3a4149;
+button.link {
+  background: none;
+  border: none;
+  color: #6ea8fe;
+  padding: 0;
+  min-height: auto;
 }
 
-button:disabled {
-  opacity: 0.6;
-  cursor: default;
+button.danger {
+  color: #ffb3bd;
 }
 
 a {

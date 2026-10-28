@@ -36,22 +36,41 @@ export default function SettingsPanel({ state, onChanged }: { state: State; onCh
         <h2>设置</h2>
       </header>
       <div className="form">
-        <label>初始本金 USDT</label>
-        <input value={capital} onChange={(e) => setCapital(e.target.value)} inputMode="decimal" />
-        <label>行情代理地址</label>
-        <input
-          placeholder="如 http://127.0.0.1:7890"
-          value={proxy}
-          onChange={(e) => setProxy(e.target.value)}
-        />
-        <button onClick={save}>保存</button>
+        <label className="field">
+          <span>初始本金 USDT</span>
+          <input style={{ width: 140 }} value={capital} onChange={(e) => setCapital(e.target.value)} inputMode="decimal" />
+        </label>
+        <label className="field">
+          <span>行情代理地址</span>
+          <input
+            style={{ width: 220 }}
+            placeholder="如 http://127.0.0.1:7890"
+            value={proxy}
+            onChange={(e) => setProxy(e.target.value)}
+          />
+        </label>
+        <button className="primary" onClick={save}>
+          保存
+        </button>
       </div>
       <div className="form">
         <button onClick={refresh} disabled={busy}>
           {busy ? '刷新中…' : '刷新价格'}
         </button>
-        <input placeholder="币种" value={symbol} onChange={(e) => setSymbol(e.target.value)} />
-        <input placeholder="手动价格" value={price} onChange={(e) => setPrice(e.target.value)} inputMode="decimal" />
+        <label className="field">
+          <span>币种</span>
+          <input style={{ width: 100 }} placeholder="BTC" value={symbol} onChange={(e) => setSymbol(e.target.value)} />
+        </label>
+        <label className="field">
+          <span>手动价格</span>
+          <input
+            style={{ width: 130 }}
+            placeholder="0.00"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            inputMode="decimal"
+          />
+        </label>
         <button onClick={overridePrice}>覆盖价格</button>
       </div>
       <p className="muted">
