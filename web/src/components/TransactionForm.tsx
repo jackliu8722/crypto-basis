@@ -65,50 +65,49 @@ export default function TransactionForm({ onDone, onError }: { onDone: () => voi
 
       {isTrade && (
         <>
-          <label className="field">
+          <label className="field field-symbol">
             <span>币种</span>
             <input
               placeholder="BTC"
               value={symbol}
-              onChange={(e) => setSymbol(e.target.value)}
-              style={{ width: 110 }}
+              onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+              autoCapitalize="characters"
+              spellCheck={false}
               required
             />
           </label>
-          <label className="field">
+          <label className="field field-qty">
             <span>数量</span>
             <input
               placeholder="0.00"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
               inputMode="decimal"
-              style={{ width: 130 }}
               required
             />
           </label>
         </>
       )}
 
-      <label className="field">
+      <label className="field field-money">
         <span>USDT 金额</span>
         <input
           placeholder="0.00"
           value={total}
           onChange={(e) => setTotal(e.target.value)}
           inputMode="decimal"
-          style={{ width: 140 }}
           required
         />
       </label>
 
-      <label className="field">
+      <label className="field field-time">
         <span>时间（默认现在）</span>
         <input type="datetime-local" value={ts} onChange={(e) => setTs(e.target.value)} />
       </label>
 
-      <label className="field">
+      <label className="field field-note">
         <span>备注</span>
-        <input placeholder="可选" value={note} onChange={(e) => setNote(e.target.value)} style={{ width: 140 }} />
+        <input placeholder="可选" value={note} onChange={(e) => setNote(e.target.value)} />
       </label>
 
       <button type="submit" className="primary">
@@ -116,9 +115,7 @@ export default function TransactionForm({ onDone, onError }: { onDone: () => voi
       </button>
 
       {unitPrice != null && (
-        <span className="muted" style={{ alignSelf: 'flex-end', paddingBottom: 8 }}>
-          单价 {fmtPrice(unitPrice)} USDT
-        </span>
+        <span className="muted unit-price">单价 {fmtPrice(unitPrice)} USDT</span>
       )}
     </form>
   );

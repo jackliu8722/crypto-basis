@@ -25,9 +25,9 @@ body {
 }
 
 main {
-  max-width: 1120px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: 24px 16px 64px;
+  padding: 24px 20px 64px;
 }
 
 h1 {
@@ -38,11 +38,10 @@ h1 {
 h2 {
   font-size: 15px;
   margin: 0;
-  color: var(--text);
 }
 
 section {
-  margin-bottom: 30px;
+  margin-bottom: 32px;
 }
 
 .section-head {
@@ -50,7 +49,7 @@ section {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--border);
 }
@@ -59,9 +58,9 @@ section {
 
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 10px;
-  margin-bottom: 26px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 28px;
 }
 
 .card {
@@ -71,18 +70,22 @@ section {
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  min-width: 0;
 }
 
 .card-label {
   color: var(--muted);
   font-size: 12px;
+  white-space: nowrap;
 }
 
 .card-value {
   font-size: 19px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ---------- 通用文字 ---------- */
@@ -116,6 +119,7 @@ section {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .warn.clickable {
@@ -133,24 +137,38 @@ section {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  gap: 12px;
+  gap: 14px 16px;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 14px 16px;
-  margin-bottom: 18px;
+  padding: 16px;
+  margin-bottom: 20px;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
+  min-width: 0;
 }
 
 .field > span {
   color: var(--muted);
   font-size: 12px;
+  white-space: nowrap;
 }
+
+.field input {
+  width: 100%;
+}
+
+/* 各字段宽度按内容长度分配，避免互相挤压 */
+.field-symbol { width: 104px; }
+.field-qty { width: 124px; }
+.field-money { width: 140px; }
+.field-time { width: 212px; }
+.field-note { flex: 1 1 150px; max-width: 240px; }
+.field-grow { flex: 1 1 200px; max-width: 260px; }
 
 input,
 button {
@@ -182,6 +200,7 @@ button {
   cursor: pointer;
   background: #2b3139;
   border-color: #39404a;
+  white-space: nowrap;
 }
 
 button:hover {
@@ -204,7 +223,27 @@ button.primary:hover {
   background: #4478f0;
 }
 
-/* 类型切换：用分段按钮替代下拉，选项一眼可见 */
+/* 流水表头的币种筛选：横向排列，不占整行 */
+.filter-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.filter-box input {
+  width: 104px;
+}
+
+.unit-price {
+  align-self: flex-end;
+  padding-bottom: 9px;
+  white-space: nowrap;
+}
+
+/* 类型切换：分段按钮，选项一眼可见 */
 .type-switch {
   display: flex;
   gap: 6px;
@@ -224,18 +263,22 @@ button.primary:hover {
 
 /* ---------- 表格 ---------- */
 
-table {
-  width: 100%;
-  border-collapse: collapse;
+/* 表格可横向滚动，列不会被挤扁；窄屏也不会撑破页面 */
+.table-wrap {
+  overflow-x: auto;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
-  overflow: hidden;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
 th,
 td {
-  padding: 10px 12px;
+  padding: 10px 14px;
   text-align: left;
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
@@ -267,7 +310,6 @@ tbody tr:last-child td {
 
 .row-cash td {
   color: var(--muted);
-  background: rgba(255, 255, 255, 0.02);
 }
 
 .row-bad {
@@ -333,4 +375,41 @@ button.danger {
 
 a {
   color: #6ea8fe;
+}
+
+/* ---------- 窄屏适配 ---------- */
+
+@media (max-width: 700px) {
+  main {
+    padding: 18px 12px 48px;
+  }
+
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .card-value {
+    font-size: 17px;
+  }
+
+  .form {
+    gap: 12px;
+  }
+
+  /* 窄屏下字段各占一行，不再横向挤压 */
+  .field-symbol,
+  .field-qty,
+  .field-money,
+  .field-time,
+  .field-note,
+  .field-grow {
+    width: 100%;
+    max-width: none;
+    flex: 1 1 100%;
+  }
+
+  th,
+  td {
+    padding: 9px 10px;
+  }
 }

@@ -42,19 +42,20 @@ export default function PositionsTable({
       {rows.length === 0 ? (
         <p className="muted">还没有持仓，先在上方录入一笔买入。</p>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>币种</th>
-              <th>数量</th>
-              <th>均价</th>
-              <th>现价</th>
-              <th>市值</th>
-              <th>浮盈</th>
-              <th>收益率</th>
-              <th>占比</th>
-            </tr>
-          </thead>
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>币种</th>
+                <th>数量</th>
+                <th>均价</th>
+                <th>现价</th>
+                <th>市值</th>
+                <th>浮盈</th>
+                <th>收益率</th>
+                <th>占比</th>
+              </tr>
+            </thead>
           <tbody>
             {rows.map((p) => (
               <tr key={p.symbol} className={p.inconsistent ? 'row-bad' : ''}>
@@ -83,8 +84,9 @@ export default function PositionsTable({
               <td className="num">—</td>
               <td className="num">{fmtPct(cashWeight)}</td>
             </tr>
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
       )}
     </section>
   );

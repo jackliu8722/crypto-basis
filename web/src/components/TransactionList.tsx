@@ -48,13 +48,14 @@ export default function TransactionList({
     <section>
       <header className="section-head">
         <h2>流水</h2>
-        <label className="field" style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <label className="filter-box">
           <span>按币种筛选</span>
           <input
-            style={{ width: 110 }}
             placeholder="BTC"
             value={filter}
             onChange={(e) => setFilter(e.target.value.toUpperCase())}
+            autoCapitalize="characters"
+            spellCheck={false}
           />
         </label>
       </header>
@@ -66,50 +67,52 @@ export default function TransactionList({
           </button>
         </p>
       )}
-      <table>
-        <thead>
-          <tr>
-            <th>时间</th>
-            <th>类型</th>
-            <th>币种</th>
-            <th>数量</th>
-            <th>单价</th>
-            <th>USDT 金额</th>
-            <th>备注</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((t) => (
-            <tr key={t.id} className={confirmingId === t.id ? 'row-confirm' : ''}>
-              <td>{fmtTime(t.ts)}</td>
-              <td>
-                <span className={TYPE_CLASS[t.type]}>{TYPE_LABEL[t.type]}</span>
-              </td>
-              <td>{t.symbol ?? '—'}</td>
-              <td className="num">{fmtQty(t.quantity)}</td>
-              <td className="num">{t.quantity ? fmtPrice(t.total_usdt / t.quantity) : '—'}</td>
-              <td className="num">{fmtUsdt(t.total_usdt)}</td>
-              <td>{t.note ?? ''}</td>
-              <td>
-                {confirmingId === t.id ? (
-                  <span className="confirm">
-                    <span className="confirm-text">删除「{describe(t)}」？</span>
-                    <button className="danger" onClick={() => remove(t)}>
-                      确认
-                    </button>
-                    <button onClick={() => setConfirmingId(null)}>取消</button>
-                  </span>
-                ) : (
-                  <button className="danger" onClick={() => setConfirmingId(t.id)}>
-                    删除
-                  </button>
-                )}
-              </td>
+      <div className="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>时间</th>
+              <th>类型</th>
+              <th>币种</th>
+              <th>数量</th>
+              <th>单价</th>
+              <th>USDT 金额</th>
+              <th>备注</th>
+              <th></th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((t) => (
+              <tr key={t.id} className={confirmingId === t.id ? 'row-confirm' : ''}>
+                <td>{fmtTime(t.ts)}</td>
+                <td>
+                  <span className={TYPE_CLASS[t.type]}>{TYPE_LABEL[t.type]}</span>
+                </td>
+                <td>{t.symbol ?? '—'}</td>
+                <td className="num">{fmtQty(t.quantity)}</td>
+                <td className="num">{t.quantity ? fmtPrice(t.total_usdt / t.quantity) : '—'}</td>
+                <td className="num">{fmtUsdt(t.total_usdt)}</td>
+                <td>{t.note ?? ''}</td>
+                <td>
+                  {confirmingId === t.id ? (
+                    <span className="confirm" title={describe(t)}>
+                      <span className="confirm-text">确认删除？</span>
+                      <button className="danger" onClick={() => remove(t)}>
+                        确认
+                      </button>
+                      <button onClick={() => setConfirmingId(null)}>取消</button>
+                    </span>
+                  ) : (
+                    <button className="danger" onClick={() => setConfirmingId(t.id)}>
+                      删除
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
   );
 }
