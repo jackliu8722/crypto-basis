@@ -2,6 +2,7 @@
   "name": "crypto-cost-tracker",
   "private": true,
   "scripts": {
+    "start": "bash start.command",
     "dev": "concurrently -n server,web -c cyan,magenta \"npm:dev:server\" \"npm:dev:web\"",
     "dev:server": "npm --prefix server run dev",
     "dev:web": "npm --prefix web run dev",

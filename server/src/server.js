@@ -1,5 +1,11 @@
 import express from 'express';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { computeState } from './engine.js';
+
+const srcDir = path.dirname(fileURLToPath(import.meta.url));
+const DIST_DIR = path.resolve(srcDir, '../../web/dist');
 
 export function createApp({ repo, priceService }) {
   const app = express();
@@ -79,6 +85,17 @@ export function createApp({ repo, priceService }) {
       res.json({ exported_at: new Date().toISOString(), settings: repo.getSettings(), transactions });
     } catch (err) { fail(res, err, 500); }
   });
+
+  // 单进程托管前端产物；未构建时给明确提示，而不是返回空白页
+  if (fs.existsSync(path.join(DIST_DIR, 'index.html'))) {
+    app.use(express.static(DIST_DIR));
+    app.get('*', (req, res) => res.sendFile(path.join(DIST_DIR, 'index.html')));
+  } else {
+    app.get('*', (req, res) =>
+      res.status(503).type('text/plain; charset=utf-8')
+        .send('前端尚未构建。请运行 ./start.command，或执行 npm run build 后重启。'),
+    );
+  }
 
   return app;
 }
