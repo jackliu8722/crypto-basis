@@ -1,5 +1,5 @@
 {
-  "name": "crypto-cost-tracker",
+  "name": "crypto-basis",
   "private": true,
   "scripts": {
     "start": "bash start.command",

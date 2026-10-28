@@ -1,4 +1,4 @@
-# 加密货币持仓成本记录器
+# crypto-basis
 
 手工录入每一笔 USDT 计价的现货交易，自动算出每个币的**持仓成本**、**当前市值**和**收益率**。
 
@@ -10,7 +10,7 @@
 
 ```bash
 git clone <仓库地址>
-cd crypto-invest-account
+cd crypto-basis
 npm install          # 装根目录依赖
 ./start.command      # 一键启动
 ```

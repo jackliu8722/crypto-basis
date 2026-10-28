@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 加密货币持仓成本记录器 — 一键启动（单进程，前端产物由后端托管）
+# crypto-basis — 一键启动（单进程，前端产物由后端托管）
 # 用法：
 #   ./start.command                                  默认端口 3001，自动打开浏览器
 #   ./start.command --proxy http://127.0.0.1:7890    指定行情代理
