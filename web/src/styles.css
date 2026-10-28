@@ -32,7 +32,109 @@ main {
 
 h1 {
   font-size: 20px;
-  margin: 0 0 4px;
+  margin: 0;
+}
+
+/* 页头：标题 + 记一笔按钮 */
+.page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+/* ---------- 记录交易的弹窗 ---------- */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal {
+  width: 100%;
+  max-width: 520px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-head .link {
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.modal-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 每个字段独占一行：标签左对齐固定宽度，输入框占满剩余 */
+.modal-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.modal-row-top {
+  align-items: flex-start;
+}
+
+.modal-label {
+  width: 84px;
+  flex: none;
+  color: #a8b2c1;
+  font-size: 13px;
+  padding-top: 8px;
+}
+
+.modal-row input,
+.modal-row textarea {
+  flex: 1;
+  min-width: 0;
+}
+
+.modal-static {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text);
+  padding-top: 8px;
+}
+
+.modal-error {
+  grid-column: auto;
+  margin: 0;
+}
+
+.modal-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.modal-foot button {
+  min-width: 84px;
 }
 
 h2 {
@@ -137,33 +239,17 @@ section {
 
 /* ---------- 表单 ---------- */
 
+/* 设置区用的横向表单 */
 .form {
   display: flex;
-  flex-direction: column;
-  gap: 14px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px 16px;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 20px;
-}
-
-/* 第一行：类型 + 币种 + 数量 + 金额 + 时间 + 提交，全部是这笔交易本身的属性 */
-.form-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 14px 16px;
-}
-
-/* 第二行：备注这类附加信息，用虚线分隔，避免看着像挂在按钮下面 */
-.form-extra {
-  border-top: 1px dashed var(--border);
-  padding-top: 14px;
-}
-
-.submit-btn {
-  min-width: 84px;
 }
 
 .field {
@@ -192,6 +278,7 @@ section {
 .field-grow { flex: 1 1 200px; max-width: 260px; }
 
 input,
+textarea,
 button {
   background: #22262e;
   color: var(--text);
@@ -200,6 +287,20 @@ button {
   padding: 8px 11px;
   font: inherit;
   min-height: 34px;
+}
+
+textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+textarea::placeholder {
+  color: #6b7684;
 }
 
 input::placeholder {
@@ -405,6 +506,21 @@ a {
 @media (max-width: 1100px) {
   .cards {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .modal-backdrop {
+    padding: 12px;
+  }
+
+  .modal-body {
+    padding: 16px;
+  }
+
+  .modal-label {
+    width: 66px;
+    font-size: 12px;
   }
 }
 
