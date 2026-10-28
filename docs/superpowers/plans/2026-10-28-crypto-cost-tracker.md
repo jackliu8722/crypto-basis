@@ -124,7 +124,7 @@ git checkout -b feat/crypto-cost-tracker
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc --noEmit && vite build",
     "preview": "vite preview"
   },
   "dependencies": { "react": "^18.3.1", "react-dom": "^18.3.1" },
@@ -654,6 +654,8 @@ Expected: FAIL，`market_value` 为 undefined
   for (const p of positions) {
     if (p.inconsistent) warnings.push(`${p.symbol} 持仓数据不一致，疑似缺少买入记录`);
   }
+  const noPrice = positions.filter((p) => p.quantity > EPS && p.market_value === null).map((p) => p.symbol);
+  if (noPrice.length > 0) warnings.push(`${noPrice.join('、')} 未取到价格，其浮动盈亏未计入汇总`);
 
   return {
     cash_usdt: cash,
@@ -1181,16 +1183,26 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRepository } from './repository.js';
-import { createPriceService } from './priceService.js';
 import { createApp } from './server.js';
 
 const srcDir = path.dirname(fileURLToPath(import.meta.url));
 let server; let base;
 
+/** 替身价格服务：测试不能依赖真实网络，否则会慢且 flaky */
+const priceStub = {
+  async getPrices(symbols) {
+    return Object.fromEntries(symbols.map((s) => [s, {
+      price: 70000, stale: false, fetched_at: new Date().toISOString(), source: 'stub',
+    }]));
+  },
+  setOverride() {},
+  clearOverride() {},
+};
+
 before(async () => {
   const db = new Database(':memory:');
   db.exec(fs.readFileSync(path.join(srcDir, 'schema.sql'), 'utf8'));
-  const app = createApp({ repo: createRepository(db), priceService: createPriceService(db) });
+  const app = createApp({ repo: createRepository(db), priceService: priceStub });
   server = app.listen(0, '127.0.0.1');
   await new Promise((r) => server.once('listening', r));
   base = `http://127.0.0.1:${server.address().port}`;
@@ -1211,7 +1223,9 @@ test('买入后持仓与现金正确，卖出超额被拒绝', async () => {
   assert.match((await bad.json()).error, /卖出数量超过持仓/);
 
   const state = await (await fetch(`${base}/api/state`)).json();
-  assert.equal(state.positions[0].symbol, 'BTC');
+  const btc = state.positions.find((p) => p.symbol === 'BTC');
+  assert.equal(btc.quantity, 1);
+  assert.equal(btc.avg_cost, 60000);
   assert.equal(state.cash_usdt, 40000);
   assert.equal(state.totals.invested_capital, 100000);
 });
@@ -1411,6 +1425,20 @@ export default function SummaryCards({ state }: { state: State }) {
 import type { Position, State } from '../api';
 import { fmtUsdt, fmtQty, fmtPrice, fmtPct, fmtSigned, fmtAgo } from '../format';
 
+/** 定义在组件外：写在组件内部会导致每次渲染都是新的组件类型，表格行被整体重挂载 */
+function PriceCell({ p, fetchedAt }: { p: Position; fetchedAt: string | null }) {
+  return (
+    <td>
+      {fmtPrice(p.current_price)}
+      {p.current_price != null && (
+        <span className={p.price_stale ? 'stale' : 'muted'}>
+          {p.price_stale ? ' 已过期' : ` ${fmtAgo(fetchedAt)}`}
+        </span>
+      )}
+    </td>
+  );
+}
+
 export default function PositionsTable({ state, showClosed, onToggleClosed }: {
   state: State; showClosed: boolean; onToggleClosed: (v: boolean) => void;
 }) {
@@ -1418,16 +1446,7 @@ export default function PositionsTable({ state, showClosed, onToggleClosed }: {
     .filter((p) => showClosed || p.quantity > 1e-8)
     .sort((a, b) => (b.market_value ?? 0) - (a.market_value ?? 0));
 
-  const PriceCell = ({ p }: { p: Position }) => (
-    <td>
-      {fmtPrice(p.current_price)}
-      {p.current_price != null && (
-        <span className={p.price_stale ? 'stale' : 'muted'}>
-          {p.price_stale ? ' 已过期' : ` ${fmtAgo(state.prices[p.symbol]?.fetched_at ?? null)}`}
-        </span>
-      )}
-    </td>
-  );
+  const cashWeight = state.totals.net_worth > 0 ? state.cash_usdt / state.totals.net_worth : null;
 
   return (
     <section>
@@ -1446,13 +1465,23 @@ export default function PositionsTable({ state, showClosed, onToggleClosed }: {
                 <td>{p.symbol}{p.inconsistent && <span className="warn-inline"> 数据不一致</span>}</td>
                 <td className="num">{fmtQty(p.quantity)}</td>
                 <td className="num">{fmtPrice(p.avg_cost)}</td>
-                <PriceCell p={p} />
+                <PriceCell p={p} fetchedAt={state.prices[p.symbol]?.fetched_at ?? null} />
                 <td className="num">{fmtUsdt(p.market_value)}</td>
                 <td className={`num ${(p.unrealized_pnl ?? 0) >= 0 ? 'up' : 'down'}`}>{fmtSigned(p.unrealized_pnl)}</td>
                 <td className={`num ${(p.unrealized_pnl_pct ?? 0) >= 0 ? 'up' : 'down'}`}>{fmtPct(p.unrealized_pnl_pct)}</td>
                 <td className="num">{fmtPct(p.weight)}</td>
               </tr>
             ))}
+            <tr className="row-cash">
+              <td>USDT 现金</td>
+              <td className="num">{fmtUsdt(state.cash_usdt)}</td>
+              <td className="num">—</td>
+              <td className="num">1.00</td>
+              <td className="num">{fmtUsdt(state.cash_usdt)}</td>
+              <td className="num">—</td>
+              <td className="num">—</td>
+              <td className="num">{fmtPct(cashWeight)}</td>
+            </tr>
           </tbody>
         </table>
       )}
