@@ -148,12 +148,18 @@ section {
   margin-bottom: 20px;
 }
 
-/* 表单按行布局：第一行必填项 + 提交，第二行时间与备注，按钮不会被挤到下一行 */
+/* 第一行：类型 + 币种 + 数量 + 金额 + 时间 + 提交，全部是这笔交易本身的属性 */
 .form-row {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
   gap: 14px 16px;
+}
+
+/* 第二行：备注这类附加信息，用虚线分隔，避免看着像挂在按钮下面 */
+.form-extra {
+  border-top: 1px dashed var(--border);
+  padding-top: 14px;
 }
 
 .submit-btn {
@@ -168,7 +174,7 @@ section {
 }
 
 .field > span {
-  color: var(--muted);
+  color: #a8b2c1;
   font-size: 12px;
   white-space: nowrap;
 }
@@ -178,18 +184,18 @@ section {
 }
 
 /* 各字段宽度按内容长度分配，避免互相挤压 */
-.field-symbol { width: 104px; }
-.field-qty { width: 124px; }
-.field-money { width: 140px; }
-.field-time { width: 212px; }
-.field-note { width: 260px; }
+.field-symbol { width: 110px; }
+.field-qty { width: 130px; }
+.field-money { width: 150px; }
+.field-time { width: 206px; }
+.field-note { flex: 1 1 320px; max-width: 620px; }
 .field-grow { flex: 1 1 200px; max-width: 260px; }
 
 input,
 button {
-  background: var(--panel-2);
+  background: #22262e;
   color: var(--text);
-  border: 1px solid var(--border);
+  border: 1px solid #3a424d;
   border-radius: 6px;
   padding: 8px 11px;
   font: inherit;
@@ -265,9 +271,10 @@ button.primary:hover {
 }
 
 .type-switch button {
-  min-width: 56px;
-  padding: 8px 12px;
-  color: var(--muted);
+  min-width: 58px;
+  padding: 8px 14px;
+  color: #c3cad6;
+  background: #22262e;
 }
 
 .type-switch button.active {

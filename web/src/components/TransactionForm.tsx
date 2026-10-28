@@ -102,23 +102,23 @@ export default function TransactionForm({ onDone, onError }: { onDone: () => voi
           />
         </label>
 
-        <button type="submit" className="primary submit-btn">
-          记录
-        </button>
-
-        {unitPrice != null && <span className="muted unit-price">单价 {fmtPrice(unitPrice)} USDT</span>}
-      </div>
-
-      {/* 第二行：可选信息，不跟必填项抢位置 */}
-      <div className="form-row">
         <label className="field field-time">
           <span>时间（默认现在）</span>
           <input type="datetime-local" value={ts} onChange={(e) => setTs(e.target.value)} />
         </label>
+
+        <button type="submit" className="primary submit-btn">
+          记录
+        </button>
+      </div>
+
+      {/* 备注单独一行，与上面的必填项用虚线分隔，不会和按钮混淆 */}
+      <div className="form-row form-extra">
         <label className="field field-note">
-          <span>备注</span>
-          <input placeholder="可选" value={note} onChange={(e) => setNote(e.target.value)} />
+          <span>备注（可选）</span>
+          <input placeholder="这笔交易为什么买 / 卖" value={note} onChange={(e) => setNote(e.target.value)} />
         </label>
+        {unitPrice != null && <span className="muted unit-price">单价 {fmtPrice(unitPrice)} USDT</span>}
       </div>
     </form>
   );
