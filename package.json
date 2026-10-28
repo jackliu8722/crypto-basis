@@ -7,6 +7,7 @@
     "dev:server": "npm --prefix server run dev",
     "dev:web": "npm --prefix web run dev",
     "test": "npm --prefix server run test",
+    "snapshot": "npm --prefix server run snapshot",
     "build": "npm --prefix web run build"
   },
   "devDependencies": {
