@@ -16,7 +16,7 @@ const BUILTIN_IDS = {
   PEPE: 'pepe', WIF: 'dogwifcoin', BCH: 'bitcoin-cash', ETC: 'ethereum-classic',
 };
 
-export function createPriceService(db) {
+export function createPriceService(db, { proxy } = {}) {
   const getCached = db.prepare(`SELECT * FROM prices WHERE symbol = ?`);
   const upsertCached = db.prepare(`
     INSERT INTO prices (symbol, price_usdt, source, fetched_at) VALUES (@symbol, @price_usdt, @source, @fetched_at)
@@ -29,10 +29,16 @@ export function createPriceService(db) {
   `);
   const deleteOverride = db.prepare(`DELETE FROM price_overrides WHERE symbol = ?`);
 
-  /** 行情接口在国内网络通常要走代理；settings.proxy_url 优先，其次环境变量 */
+  /**
+   * 行情接口在国内网络通常要走代理。
+   * 优先级：命令行 --proxy / --no-proxy > 环境变量 > 设置面板里存的 proxy_url
+   */
   function proxyUrl() {
+    if (proxy !== undefined) return proxy || null;
+    const env = process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
+    if (env) return env;
     const row = db.prepare(`SELECT proxy_url FROM settings WHERE id = 1`).get();
-    return row?.proxy_url || process.env.HTTPS_PROXY || process.env.HTTP_PROXY || null;
+    return row?.proxy_url || null;
   }
 
   function doFetch(url) {
@@ -130,5 +136,7 @@ export function createPriceService(db) {
     clearOverride(symbol) {
       deleteOverride.run(String(symbol).toUpperCase());
     },
+
+    currentProxy: proxyUrl,
   };
 }

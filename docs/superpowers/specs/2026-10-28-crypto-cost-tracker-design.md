@@ -170,6 +170,20 @@ qty             -= quantity
 
 **为什么用 `undici` 而不是内置 fetch**：Node 内置 fetch 不读取代理环境变量，且 npm 安装的 undici 的 `setGlobalDispatcher` 不影响内置实例（两者是不同副本）。所以 priceService 直接 `import { fetch, ProxyAgent } from 'undici'`，保证 dispatcher 与 fetch 同源。
 
+**代理只在服务端生效**：浏览器只与本机 3001/5173 通信，是 Node 后端去访问 CoinGecko，所以代理配在后端，浏览器不需要任何设置。
+
+**启动参数**（优先级从高到低）：
+
+```bash
+node src/index.js --proxy http://127.0.0.1:7890   # 命令行指定（最高优先级）
+node src/index.js --no-proxy                      # 显式禁用，即使设置里填了也不用
+HTTPS_PROXY=http://127.0.0.1:7890 npm run dev     # 环境变量
+```
+
+都不给时，回落读 `settings.proxy_url`（设置面板里填的值）。启动时会在控制台打印当前生效的代理地址。
+
+**访问方式**：`npm run dev` 后浏览器打开 `http://localhost:5173`。后端只监听 `127.0.0.1`，局域网内其他设备访问不到——这是刻意的，账目数据不应暴露到网络上。
+
 **限流**：CoinGecko 免费额度约 10–30 req/min。批量请求 + 5 分钟 TTL + 失败静默降级，不会触发限流。
 
 **刷新时机**：前端加载 `/api/state` 时后端顺带检查并刷新过期价格；另提供手动"刷新价格"按钮强制刷新。
