@@ -19,7 +19,25 @@ const db = openDb();
 const priceService = createPriceService(db, { proxy });
 const app = createApp({ repo: createRepository(db), priceService });
 
+/**
+ * 退出前把 WAL 合并进主文件并清空。
+ * 否则 data/ledger.db 只是个空壳，单独拷到别的机器会丢数据——交易全在 ledger.db-wal 里。
+ */
+function shutdown() {
+  try {
+    db.pragma('wal_checkpoint(TRUNCATE)');
+    db.close();
+  } catch (err) {
+    console.warn('[shutdown] checkpoint 失败：', err.message);
+  }
+  process.exit(0);
+}
+
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
+
 app.listen(port, '127.0.0.1', () => {
   console.log(`server:  http://127.0.0.1:${port}`);
   console.log(`行情代理: ${priceService.currentProxy() ?? '未配置'}（取不到行情时用 --proxy http://127.0.0.1:7890 指定）`);
+  console.log(`Ctrl+C 退出时会把 WAL 合并进 data/ledger.db，之后可直接拷贝该文件迁移`);
 });
