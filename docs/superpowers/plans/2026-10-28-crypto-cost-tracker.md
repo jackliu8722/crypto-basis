@@ -322,7 +322,7 @@ test('多次买入：移动加权平均成本', () => {
 - [ ] **Step 2: 运行确认失败**
 
 ```bash
-cd server && node --test src/
+cd server && node --test 'src/**/*.test.js'
 ```
 
 Expected: FAIL，`Cannot find module './engine.js'`
@@ -379,7 +379,7 @@ export function computeState({ transactions = [], settings = {}, prices = {} } =
 - [ ] **Step 4: 运行确认通过**
 
 ```bash
-cd server && node --test src/
+cd server && node --test 'src/**/*.test.js'
 ```
 
 Expected: 2 passing
@@ -436,7 +436,7 @@ test('全部卖出：持仓归零，已实现盈亏保留', () => {
 - [ ] **Step 2: 运行确认失败**
 
 ```bash
-cd server && node --test src/
+cd server && node --test 'src/**/*.test.js'
 ```
 
 Expected: FAIL，`realized_pnl_total` 为 undefined
@@ -466,7 +466,7 @@ Expected: FAIL，`realized_pnl_total` 为 undefined
 - [ ] **Step 4: 运行确认通过**
 
 ```bash
-cd server && node --test src/
+cd server && node --test 'src/**/*.test.js'
 ```
 
 Expected: 4 passing
@@ -520,7 +520,7 @@ test('乱序录入按 ts 重放，结果与顺序录入一致', () => {
 - [ ] **Step 2: 运行确认失败**
 
 ```bash
-cd server && node --test src/
+cd server && node --test 'src/**/*.test.js'
 ```
 
 Expected: FAIL（`net_worth` 字段尚不存在，deepEqual 也会因 `id` 之外结构不完整而失败）
@@ -550,7 +550,7 @@ Expected: FAIL（`net_worth` 字段尚不存在，deepEqual 也会因 `id` 之�
 - [ ] **Step 4: 运行确认通过**
 
 ```bash
-cd server && node --test src/
+cd server && node --test 'src/**/*.test.js'
 ```
 
 Expected: 6 passing
@@ -608,7 +608,7 @@ test('无价格时市值与浮盈为 null，不影响现金与已实现', () => 
 - [ ] **Step 2: 运行确认失败**
 
 ```bash
-cd server && node --test src/
+cd server && node --test 'src/**/*.test.js'
 ```
 
 Expected: FAIL，`market_value` 为 undefined
@@ -676,7 +676,7 @@ Expected: FAIL，`market_value` 为 undefined
 - [ ] **Step 4: 运行确认全部通过**
 
 ```bash
-cd server && node --test src/
+cd server && node --test 'src/**/*.test.js'
 ```
 
 Expected: 8 passing
@@ -714,7 +714,7 @@ test('availableQuantity 统计某时点之前的持仓', () => {
 - [ ] **Step 2: 运行确认失败**
 
 ```bash
-cd server && node --test src/
+cd server && node --test 'src/**/*.test.js'
 ```
 
 Expected: FAIL，`availableQuantity is not a function`
@@ -741,7 +741,7 @@ export function availableQuantity(transactions, symbol, beforeTs, beforeId) {
 - [ ] **Step 4: 运行确认通过**
 
 ```bash
-cd server && node --test src/
+cd server && node --test 'src/**/*.test.js'
 ```
 
 Expected: 9 passing
@@ -1248,7 +1248,7 @@ test('删除后重放，数字回到未录入时的状态', async () => {
 - [ ] **Step 2: 运行确认通过**
 
 ```bash
-cd server && node --test src/
+cd server && node --test 'src/**/*.test.js'
 ```
 
 Expected: 11 passing（9 个引擎 + 2 个 API）
