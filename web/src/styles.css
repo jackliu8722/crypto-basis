@@ -56,10 +56,11 @@ section {
 
 /* ---------- 汇总卡片 ---------- */
 
+/* 7 张卡片固定等分一行，避免最后一张被挤到第二行留出大片空白 */
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
   margin-bottom: 28px;
 }
 
@@ -67,10 +68,10 @@ section {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 14px 16px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
   min-width: 0;
 }
 
@@ -78,12 +79,15 @@ section {
   color: var(--muted);
   font-size: 12px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .card-value {
-  font-size: 19px;
+  font-size: 17px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -135,14 +139,25 @@ section {
 
 .form {
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 14px 16px;
+  flex-direction: column;
+  gap: 14px;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 20px;
+}
+
+/* 表单按行布局：第一行必填项 + 提交，第二行时间与备注，按钮不会被挤到下一行 */
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px 16px;
+}
+
+.submit-btn {
+  min-width: 84px;
 }
 
 .field {
@@ -167,7 +182,7 @@ section {
 .field-qty { width: 124px; }
 .field-money { width: 140px; }
 .field-time { width: 212px; }
-.field-note { flex: 1 1 150px; max-width: 240px; }
+.field-note { width: 260px; }
 .field-grow { flex: 1 1 200px; max-width: 260px; }
 
 input,
@@ -250,7 +265,8 @@ button.primary:hover {
 }
 
 .type-switch button {
-  min-width: 62px;
+  min-width: 56px;
+  padding: 8px 12px;
   color: var(--muted);
 }
 
@@ -377,7 +393,13 @@ a {
   color: #6ea8fe;
 }
 
-/* ---------- 窄屏适配 ---------- */
+/* ---------- 响应式 ---------- */
+
+@media (max-width: 1100px) {
+  .cards {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
 
 @media (max-width: 700px) {
   main {
@@ -385,7 +407,7 @@ a {
   }
 
   .cards {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .card-value {

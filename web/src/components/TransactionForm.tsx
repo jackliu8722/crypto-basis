@@ -47,76 +47,79 @@ export default function TransactionForm({ onDone, onError }: { onDone: () => voi
 
   return (
     <form onSubmit={submit} className="form">
-      <div className="field">
-        <span>类型</span>
-        <div className="type-switch">
-          {TYPES.map((t) => (
-            <button
-              key={t.value}
-              type="button"
-              className={type === t.value ? 'active' : ''}
-              onClick={() => setType(t.value)}
-            >
-              {t.label}
-            </button>
-          ))}
+      {/* 第一行：录一笔需要的全部输入 + 提交按钮 */}
+      <div className="form-row">
+        <div className="field">
+          <span>类型</span>
+          <div className="type-switch">
+            {TYPES.map((t) => (
+              <button
+                key={t.value}
+                type="button"
+                className={type === t.value ? 'active' : ''}
+                onClick={() => setType(t.value)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
         </div>
+
+        {isTrade && (
+          <>
+            <label className="field field-symbol">
+              <span>币种</span>
+              <input
+                placeholder="BTC"
+                value={symbol}
+                onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+                autoCapitalize="characters"
+                spellCheck={false}
+                required
+              />
+            </label>
+            <label className="field field-qty">
+              <span>数量</span>
+              <input
+                placeholder="0.00"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                inputMode="decimal"
+                required
+              />
+            </label>
+          </>
+        )}
+
+        <label className="field field-money">
+          <span>USDT 金额</span>
+          <input
+            placeholder="0.00"
+            value={total}
+            onChange={(e) => setTotal(e.target.value)}
+            inputMode="decimal"
+            required
+          />
+        </label>
+
+        <button type="submit" className="primary submit-btn">
+          记录
+        </button>
+
+        {unitPrice != null && <span className="muted unit-price">单价 {fmtPrice(unitPrice)} USDT</span>}
       </div>
 
-      {isTrade && (
-        <>
-          <label className="field field-symbol">
-            <span>币种</span>
-            <input
-              placeholder="BTC"
-              value={symbol}
-              onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-              autoCapitalize="characters"
-              spellCheck={false}
-              required
-            />
-          </label>
-          <label className="field field-qty">
-            <span>数量</span>
-            <input
-              placeholder="0.00"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              inputMode="decimal"
-              required
-            />
-          </label>
-        </>
-      )}
-
-      <label className="field field-money">
-        <span>USDT 金额</span>
-        <input
-          placeholder="0.00"
-          value={total}
-          onChange={(e) => setTotal(e.target.value)}
-          inputMode="decimal"
-          required
-        />
-      </label>
-
-      <label className="field field-time">
-        <span>时间（默认现在）</span>
-        <input type="datetime-local" value={ts} onChange={(e) => setTs(e.target.value)} />
-      </label>
-
-      <label className="field field-note">
-        <span>备注</span>
-        <input placeholder="可选" value={note} onChange={(e) => setNote(e.target.value)} />
-      </label>
-
-      <button type="submit" className="primary">
-        记录
-      </button>
-
-      {unitPrice != null && (
-        <span className="muted unit-price">单价 {fmtPrice(unitPrice)} USDT</span>
-      )}
+      {/* 第二行：可选信息，不跟必填项抢位置 */}
+      <div className="form-row">
+        <label className="field field-time">
+          <span>时间（默认现在）</span>
+          <input type="datetime-local" value={ts} onChange={(e) => setTs(e.target.value)} />
+        </label>
+        <label className="field field-note">
+          <span>备注</span>
+          <input placeholder="可选" value={note} onChange={(e) => setNote(e.target.value)} />
+        </label>
+      </div>
     </form>
   );
 }
