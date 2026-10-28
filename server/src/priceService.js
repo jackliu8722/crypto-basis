@@ -138,5 +138,9 @@ export function createPriceService(db, { proxy } = {}) {
     },
 
     currentProxy: proxyUrl,
+
+    // 供历史价格抓取复用（币种映射与带代理的请求）
+    resolveId: (symbol) => resolveId(symbol),
+    fetchJson: async (url) => (await doFetch(url)).json(),
   };
 }

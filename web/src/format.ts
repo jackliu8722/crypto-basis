@@ -10,6 +10,15 @@ export const fmtPrice = (n: number | null | undefined) =>
 export const fmtPct = (n: number | null | undefined) =>
   n == null || !Number.isFinite(n) ? '—' : `${(n * 100).toFixed(2)}%`;
 
+/** 图表坐标轴用的紧凑格式，避免长数字撑破画布 */
+export const fmtCompact = (n: number | null | undefined) => {
+  if (n == null || !Number.isFinite(n)) return '—';
+  const abs = Math.abs(n);
+  if (abs >= 1e8) return `${(n / 1e8).toFixed(2)}亿`;
+  if (abs >= 1e4) return `${(n / 1e4).toFixed(2)}万`;
+  return n.toFixed(2);
+};
+
 export const fmtSigned = (n: number | null | undefined) =>
   n == null || !Number.isFinite(n) ? '—' : `${n > 0 ? '+' : ''}${fmtUsdt(n)}`;
 

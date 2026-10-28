@@ -32,3 +32,13 @@ CREATE TABLE IF NOT EXISTS price_overrides (
   price_usdt REAL NOT NULL,
   updated_at TEXT NOT NULL
 );
+
+-- 历史日线收盘价，用于算净值走势与回撤。历史价格不可变，抓一次永久有效
+CREATE TABLE IF NOT EXISTS price_history (
+  symbol TEXT NOT NULL,
+  day TEXT NOT NULL,
+  price_usdt REAL NOT NULL,
+  source TEXT NOT NULL,
+  PRIMARY KEY (symbol, day)
+);
+CREATE INDEX IF NOT EXISTS idx_price_history_day ON price_history (symbol, day);

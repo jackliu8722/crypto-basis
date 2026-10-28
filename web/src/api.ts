@@ -40,6 +40,30 @@ export type State = {
   prices: Record<string, { price: number | null; stale: boolean; fetched_at: string | null; source: string }>;
 };
 
+export type HistoryPoint = {
+  day: string;
+  net_worth: number;
+  invested: number;
+  market_value: number;
+  cash: number;
+  cost_basis: number;
+  realized: number;
+  pnl: number;
+  twr_index: number;
+  drawdown: number;
+  estimated: boolean;
+};
+
+export type HistoryResponse = {
+  from: string;
+  to: string;
+  points: HistoryPoint[];
+  max_drawdown: number;
+  drawdown_from: string | null;
+  drawdown_to: string | null;
+  coverage: Record<string, { status: string; points?: number; reason?: string }>;
+};
+
 async function req<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);
   if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? `请求失败 ${res.status}`);
@@ -60,4 +84,11 @@ export const api = {
   refreshPrices: () => req('/api/prices/refresh', { method: 'POST' }),
   setPrice: (symbol: string, price: number) => req(`/api/prices/${symbol}`, { method: 'PUT', ...json({ price }) }),
   updateSettings: (body: Record<string, unknown>) => req('/api/settings', { method: 'PUT', ...json(body) }),
+  getHistory: (params: { days?: string; from?: string; to?: string }) => {
+    const q = new URLSearchParams();
+    if (params.days) q.set('days', params.days);
+    if (params.from) q.set('from', params.from);
+    if (params.to) q.set('to', params.to);
+    return req<HistoryResponse>(`/api/history?${q.toString()}`);
+  },
 };

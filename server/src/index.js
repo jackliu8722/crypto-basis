@@ -1,6 +1,7 @@
 import { openDb } from './db.js';
 import { createRepository } from './repository.js';
 import { createPriceService } from './priceService.js';
+import { createHistoryService } from './historyService.js';
 import { createApp } from './server.js';
 
 const args = process.argv.slice(2);
@@ -17,7 +18,8 @@ const port = Number(readArg('--port') ?? process.env.PORT ?? 3001);
 
 const db = openDb();
 const priceService = createPriceService(db, { proxy });
-const app = createApp({ repo: createRepository(db), priceService });
+const historyService = createHistoryService(db, priceService);
+const app = createApp({ repo: createRepository(db), priceService, historyService });
 
 /**
  * 退出前把 WAL 合并进主文件并清空。

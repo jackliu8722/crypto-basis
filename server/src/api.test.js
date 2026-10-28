@@ -21,10 +21,20 @@ const priceStub = {
   clearOverride() {},
 };
 
+/** 历史服务替身：不抓网络，只验证路由参数与结构 */
+const historyStub = {
+  async ensure() {
+    return {};
+  },
+  series({ fromDay, toDay }) {
+    return { points: [{ day: fromDay, net_worth: 0 }, { day: toDay, net_worth: 0 }], max_drawdown: 0 };
+  },
+};
+
 before(async () => {
   const db = new Database(':memory:');
   db.exec(fs.readFileSync(path.join(srcDir, 'schema.sql'), 'utf8'));
-  const app = createApp({ repo: createRepository(db), priceService: priceStub });
+  const app = createApp({ repo: createRepository(db), priceService: priceStub, historyService: historyStub });
   server = app.listen(0, '127.0.0.1');
   await new Promise((r) => server.once('listening', r));
   base = `http://127.0.0.1:${server.address().port}`;

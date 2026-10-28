@@ -397,6 +397,105 @@ button.primary:hover {
   font-weight: 500;
 }
 
+/* ---------- 收益走势 ---------- */
+
+.range-row {
+  margin-bottom: 14px;
+}
+
+.range-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.stat {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.stat strong {
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-wrap {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.chart .axis {
+  fill: var(--muted);
+  font-size: 11px;
+}
+
+.chart-tip {
+  position: absolute;
+  transform: translateX(-50%);
+  background: #0b0e11;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  z-index: 2;
+}
+
+.chart-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.chart-legend .sw {
+  display: inline-block;
+  width: 14px;
+  height: 3px;
+  margin-right: 6px;
+  vertical-align: middle;
+  border-radius: 2px;
+}
+
+.sw-net {
+  background: #2f6fed;
+}
+
+.sw-invest {
+  background: #848e9c;
+}
+
+.sw-dd {
+  background: rgba(246, 70, 93, 0.5);
+  height: 10px;
+}
+
 /* ---------- 表格 ---------- */
 
 /* 表格可横向滚动，列不会被挤扁；窄屏也不会撑破页面 */

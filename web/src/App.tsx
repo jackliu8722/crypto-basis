@@ -3,6 +3,7 @@ import { api, type State } from './api';
 import Logo from './components/Logo';
 import SummaryCards from './components/SummaryCards';
 import PositionsTable from './components/PositionsTable';
+import HistoryPanel from './components/HistoryPanel';
 import TransactionModal from './components/TransactionModal';
 import TransactionList from './components/TransactionList';
 import SettingsPanel from './components/SettingsPanel';
@@ -47,6 +48,7 @@ export default function App() {
       )}
 
       <SummaryCards state={state} />
+      <HistoryPanel />
       <PositionsTable state={state} showClosed={showClosed} onToggleClosed={setShowClosed} />
       <TransactionList transactions={state.transactions} onChanged={reload} />
       <SettingsPanel state={state} onChanged={reload} />

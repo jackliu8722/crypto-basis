@@ -3,11 +3,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { computeState } from './engine.js';
+import { addDays, dayOf, today } from './historyService.js';
 
 const srcDir = path.dirname(fileURLToPath(import.meta.url));
 const DIST_DIR = path.resolve(srcDir, '../../web/dist');
 
-export function createApp({ repo, priceService }) {
+export function createApp({ repo, priceService, historyService }) {
   const app = express();
   app.use(express.json());
 
@@ -63,6 +64,36 @@ export function createApp({ repo, priceService }) {
       const symbols = symbolsOf(repo.listTransactions());
       const prices = await priceService.getPrices(symbols, { ttlSeconds: settings.price_ttl_seconds, force: true });
       res.json({ prices });
+    } catch (err) { fail(res, err, 500); }
+  });
+
+  // 走势与回撤：days=7|30|all，或用 from/to 指定区间（YYYY-MM-DD）
+  app.get('/api/history', async (req, res) => {
+    try {
+      const settings = repo.getSettings();
+      const transactions = repo.listTransactions();
+
+      let toDay = req.query.to ? String(req.query.to) : today();
+      if (toDay > today()) toDay = today();
+
+      let fromDay;
+      if (req.query.from) {
+        fromDay = String(req.query.from);
+      } else if (String(req.query.days ?? '30') === '7') {
+        fromDay = addDays(toDay, -6);
+      } else if (String(req.query.days ?? '30') === '30') {
+        fromDay = addDays(toDay, -29);
+      } else {
+        const firstTs = transactions[0]?.ts;
+        fromDay = firstTs ? dayOf(Date.parse(firstTs)) : addDays(toDay, -29);
+      }
+      if (fromDay > toDay) fromDay = toDay;
+
+      const symbols = [...new Set(transactions.filter((t) => t.symbol).map((t) => t.symbol))];
+      const coverage = await historyService.ensure(symbols, fromDay, toDay);
+      const series = historyService.series({ transactions, settings, fromDay, toDay });
+
+      res.json({ from: fromDay, to: toDay, coverage, ...series });
     } catch (err) { fail(res, err, 500); }
   });
 
