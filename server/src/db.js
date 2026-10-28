@@ -13,8 +13,15 @@ export function openDb() {
   const db = new Database(DB_PATH);
   db.pragma('journal_mode = WAL');
   db.exec(fs.readFileSync(path.join(srcDir, 'schema.sql'), 'utf8'));
+  migrate(db);
   backup();
   return db;
+}
+
+/** 已存在的库缺列时补上（CREATE TABLE IF NOT EXISTS 不会加列） */
+function migrate(db) {
+  const cols = db.prepare(`PRAGMA table_info(settings)`).all().map((c) => c.name);
+  if (!cols.includes('proxy_url')) db.exec(`ALTER TABLE settings ADD COLUMN proxy_url TEXT`);
 }
 
 /** 启动时快照，保留最近 7 份；失败不影响启动 */
