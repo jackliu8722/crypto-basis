@@ -35,13 +35,25 @@ h1 {
   margin: 0;
 }
 
-/* 页头：标题 + 记一笔按钮 */
+/* 页头：logo + 标题 + 记一笔按钮 */
 .page-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 22px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.logo {
+  flex: none;
+  border-radius: 8px;
 }
 
 /* ---------- 记录交易的弹窗 ---------- */

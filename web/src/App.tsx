@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api, type State } from './api';
+import Logo from './components/Logo';
 import SummaryCards from './components/SummaryCards';
 import PositionsTable from './components/PositionsTable';
 import TransactionModal from './components/TransactionModal';
@@ -30,7 +31,10 @@ export default function App() {
   return (
     <main>
       <div className="page-head">
-        <h1>持仓成本记录器</h1>
+        <div className="brand">
+          <Logo />
+          <h1>持仓成本记录器</h1>
+        </div>
         <button className="primary" onClick={() => setAdding(true)}>
           + 记一笔
         </button>
