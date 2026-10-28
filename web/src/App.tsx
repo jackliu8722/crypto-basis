@@ -34,7 +34,10 @@ export default function App() {
       <div className="page-head">
         <div className="brand">
           <Logo />
-          <h1>持仓成本记录器</h1>
+          <div className="brand-text">
+            <h1>成本簿</h1>
+            <span className="muted">USDT 持仓成本与收益</span>
+          </div>
         </div>
         <button className="primary" onClick={() => setAdding(true)}>
           + 记一笔

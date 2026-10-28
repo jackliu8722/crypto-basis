@@ -1,4 +1,4 @@
-# 加密货币持仓成本记录器 Implementation Plan
+# crypto-basis Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -10,7 +10,7 @@
 
 **分支约定（重要）**：所有开发在任务分支 `feat/crypto-cost-tracker` 上进行，**不要合并进 `main`**，也不要为了合并而切回 `main`。流程停在"分支上已提交"，等用户明确说合并再执行。
 
-设计文档：`docs/superpowers/specs/2026-10-28-crypto-cost-tracker-design.md`
+设计文档：`docs/superpowers/specs/2026-10-28-crypto-basis-design.md`
 
 ---
 
@@ -83,7 +83,7 @@ git checkout -b feat/crypto-cost-tracker
 
 ```json
 {
-  "name": "crypto-cost-tracker",
+  "name": "crypto-basis",
   "private": true,
   "scripts": {
     "dev": "concurrently -n server,web -c cyan,magenta \"npm:dev:server\" \"npm:dev:web\"",

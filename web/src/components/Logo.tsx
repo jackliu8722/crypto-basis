@@ -5,7 +5,7 @@ export default function Logo({ size = 30 }: { size?: number }) {
       height={size}
       viewBox="0 0 32 32"
       role="img"
-      aria-label="持仓成本记录器"
+      aria-label="成本簿"
       className="logo"
     >
       <defs>

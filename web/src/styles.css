@@ -51,6 +51,19 @@ h1 {
   min-width: 0;
 }
 
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.brand-text .muted {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .logo {
   flex: none;
   border-radius: 8px;
