@@ -8,12 +8,16 @@
 
 ## 快速开始
 
+**环境要求**：Node 18 及以上（开发时用的是 22）。
+
 ```bash
 git clone <仓库地址>
 cd crypto-basis
 npm install          # 装根目录依赖
 ./start.command      # 一键启动
 ```
+
+> 换机器或升级依赖后如果报 `createZstdDecompress` 之类的错，说明 `undici` 版本与 Node 版本不匹配。删掉 `server/node_modules` 和 `server/package-lock.json` 重装即可：`cd server && rm -rf node_modules package-lock.json && npm install`。
 
 也可以双击 `start.command`（macOS）。启动后自动打开 **http://127.0.0.1:3001**。
 
