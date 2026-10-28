@@ -166,6 +166,10 @@ qty             -= quantity
 
 **USDT 按 1:1 美元处理**，且不进入持仓列表（它就是现金账户本身）。
 
+**代理（实测必需）**：开发机在国内网络下，CoinGecko / Binance / OKX 均不可直连（返回 000），但经 `http://127.0.0.1:7890` 代理三者都通。因此 `settings.proxy_url` 可配置，取价时通过 `undici` 的 `ProxyAgent` 发出；未配置时回退读 `HTTPS_PROXY` / `HTTP_PROXY` 环境变量。取不到价时按上面的降级路径处理，并在设置面板提示"未填代理地址时通常取不到行情，可手动填价"。
+
+**为什么用 `undici` 而不是内置 fetch**：Node 内置 fetch 不读取代理环境变量，且 npm 安装的 undici 的 `setGlobalDispatcher` 不影响内置实例（两者是不同副本）。所以 priceService 直接 `import { fetch, ProxyAgent } from 'undici'`，保证 dispatcher 与 fetch 同源。
+
 **限流**：CoinGecko 免费额度约 10–30 req/min。批量请求 + 5 分钟 TTL + 失败静默降级，不会触发限流。
 
 **刷新时机**：前端加载 `/api/state` 时后端顺带检查并刷新过期价格；另提供手动"刷新价格"按钮强制刷新。
