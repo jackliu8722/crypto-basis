@@ -30,7 +30,7 @@ export default function App() {
     <main>
       <h1>持仓成本记录器</h1>
       {error && (
-        <p className="warn" onClick={() => setError('')}>
+        <p className="warn clickable" onClick={() => setError('')}>
           {error}（点击关闭）
         </p>
       )}

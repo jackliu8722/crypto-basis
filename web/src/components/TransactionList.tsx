@@ -19,13 +19,22 @@ export default function TransactionList({
 }) {
   const [filter, setFilter] = useState('');
   const [undone, setUndone] = useState<Transaction | null>(null);
+  const [confirmingId, setConfirmingId] = useState<number | null>(null);
 
   const rows = [...transactions].filter((t) => !filter || t.symbol === filter).reverse();
 
   async function remove(t: Transaction) {
     await api.deleteTransaction(t.id);
+    setConfirmingId(null);
     setUndone(t);
     onChanged();
+  }
+
+  function describe(t: Transaction) {
+    const parts = [TYPE_LABEL[t.type]];
+    if (t.symbol) parts.push(`${fmtQty(t.quantity)} ${t.symbol}`);
+    parts.push(`${fmtUsdt(t.total_usdt)} USDT`);
+    return parts.join(' · ');
   }
 
   async function undo() {
@@ -51,7 +60,10 @@ export default function TransactionList({
       </header>
       {undone && (
         <p className="warn">
-          已删除一条 {TYPE_LABEL[undone.type]} 记录 <button onClick={undo}>撤销</button>
+          已删除「{describe(undone)}」
+          <button className="link" onClick={undo}>
+            撤销
+          </button>
         </p>
       )}
       <table>
@@ -69,7 +81,7 @@ export default function TransactionList({
         </thead>
         <tbody>
           {rows.map((t) => (
-            <tr key={t.id}>
+            <tr key={t.id} className={confirmingId === t.id ? 'row-confirm' : ''}>
               <td>{fmtTime(t.ts)}</td>
               <td>
                 <span className={TYPE_CLASS[t.type]}>{TYPE_LABEL[t.type]}</span>
@@ -80,9 +92,19 @@ export default function TransactionList({
               <td className="num">{fmtUsdt(t.total_usdt)}</td>
               <td>{t.note ?? ''}</td>
               <td>
-                <button className="danger" onClick={() => remove(t)}>
-                  删除
-                </button>
+                {confirmingId === t.id ? (
+                  <span className="confirm">
+                    <span className="confirm-text">删除「{describe(t)}」？</span>
+                    <button className="danger" onClick={() => remove(t)}>
+                      确认
+                    </button>
+                    <button onClick={() => setConfirmingId(null)}>取消</button>
+                  </span>
+                ) : (
+                  <button className="danger" onClick={() => setConfirmingId(t.id)}>
+                    删除
+                  </button>
+                )}
               </td>
             </tr>
           ))}
