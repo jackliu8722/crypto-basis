@@ -1,5 +1,6 @@
 import type { Position, State } from '../api';
-import { fmtUsdt, fmtQty, fmtPrice, fmtPct, fmtSigned, fmtAgo } from '../format';
+import { fmtUsdt, fmtQty, fmtPrice, fmtPct, fmtSigned, fmtAgo, MASK } from '../format';
+import { usePrivacy } from '../privacy';
 
 /** 定义在组件外：写在组件内部会导致每次渲染都是新的组件类型，表格行被整体重挂载 */
 function PriceCell({ p, fetchedAt }: { p: Position; fetchedAt: string | null }) {
@@ -24,6 +25,7 @@ export default function PositionsTable({
   showClosed: boolean;
   onToggleClosed: (v: boolean) => void;
 }) {
+  const hidden = usePrivacy();
   const rows = state.positions
     .filter((p) => showClosed || p.quantity > 1e-8)
     .sort((a, b) => (b.market_value ?? 0) - (a.market_value ?? 0));
@@ -63,11 +65,14 @@ export default function PositionsTable({
                   {p.symbol}
                   {p.inconsistent && <span className="warn-inline"> 数据不一致</span>}
                 </td>
-                <td className="num">{fmtQty(p.quantity)}</td>
+                {/* 数量也要藏：数量 × 现价 就能反推资产规模 */}
+                <td className="num">{hidden ? MASK : fmtQty(p.quantity)}</td>
                 <td className="num">{fmtPrice(p.avg_cost)}</td>
                 <PriceCell p={p} fetchedAt={state.prices[p.symbol]?.fetched_at ?? null} />
-                <td className="num">{fmtUsdt(p.market_value)}</td>
-                <td className={`num ${(p.unrealized_pnl ?? 0) >= 0 ? 'up' : 'down'}`}>{fmtSigned(p.unrealized_pnl)}</td>
+                <td className="num">{hidden ? MASK : fmtUsdt(p.market_value)}</td>
+                <td className={`num ${(p.unrealized_pnl ?? 0) >= 0 ? 'up' : 'down'}`}>
+                  {hidden ? MASK : fmtSigned(p.unrealized_pnl)}
+                </td>
                 <td className={`num ${(p.unrealized_pnl_pct ?? 0) >= 0 ? 'up' : 'down'}`}>
                   {fmtPct(p.unrealized_pnl_pct)}
                 </td>
@@ -76,10 +81,10 @@ export default function PositionsTable({
             ))}
             <tr className="row-cash">
               <td>USDT 现金</td>
-              <td className="num">{fmtUsdt(state.cash_usdt)}</td>
+              <td className="num">{hidden ? MASK : fmtUsdt(state.cash_usdt)}</td>
               <td className="num">—</td>
               <td className="num">1.00</td>
-              <td className="num">{fmtUsdt(state.cash_usdt)}</td>
+              <td className="num">{hidden ? MASK : fmtUsdt(state.cash_usdt)}</td>
               <td className="num">—</td>
               <td className="num">—</td>
               <td className="num">{fmtPct(cashWeight)}</td>

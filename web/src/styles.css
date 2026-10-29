@@ -44,6 +44,27 @@ h1 {
   margin-bottom: 22px;
 }
 
+.page-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 隐私模式开关 */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.icon-btn.active {
+  background: rgba(47, 111, 237, 0.16);
+  border-color: rgba(47, 111, 237, 0.5);
+  color: #8ab0ff;
+}
+
 .brand {
   display: flex;
   align-items: center;

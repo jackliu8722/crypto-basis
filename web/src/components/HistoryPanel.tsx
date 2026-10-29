@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api, type HistoryResponse } from '../api';
-import { fmtUsdt, fmtPct, fmtSigned } from '../format';
+import { fmtUsdt, fmtPct, fmtSigned, MASK } from '../format';
+import { usePrivacy } from '../privacy';
 import NetWorthChart from './NetWorthChart';
 
 type Preset = '7' | '30' | 'all' | 'custom';
@@ -23,6 +24,7 @@ function shiftDays(d: Date, n: number) {
 }
 
 export default function HistoryPanel() {
+  const hidden = usePrivacy();
   const [preset, setPreset] = useState<Preset>('30');
   const [from, setFrom] = useState(localDay(shiftDays(new Date(), -29)));
   const [to, setTo] = useState(localDay(new Date()));
@@ -93,7 +95,9 @@ export default function HistoryPanel() {
         <div className="range-stats">
           <div className="stat">
             <span>区间收益</span>
-            <strong className={rangePnl != null && rangePnl >= 0 ? 'up' : 'down'}>{fmtSigned(rangePnl)}</strong>
+            <strong className={rangePnl != null && rangePnl >= 0 ? 'up' : 'down'}>
+              {hidden ? MASK : fmtSigned(rangePnl)}
+            </strong>
           </div>
           <div className="stat">
             <span>区间收益率</span>
@@ -109,7 +113,7 @@ export default function HistoryPanel() {
           </div>
           <div className="stat">
             <span>期末总资产</span>
-            <strong>{fmtUsdt(last?.net_worth)}</strong>
+            <strong>{hidden ? MASK : fmtUsdt(last?.net_worth)}</strong>
           </div>
         </div>
       )}

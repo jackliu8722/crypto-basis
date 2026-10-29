@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import type { HistoryPoint } from '../api';
-import { fmtUsdt, fmtCompact } from '../format';
+import { fmtUsdt, fmtCompact, fmtPct, MASK } from '../format';
+import { usePrivacy } from '../privacy';
 
 const W = 760;
 const H = 240;
@@ -9,15 +10,22 @@ const IW = W - PAD.l - PAD.r;
 const IH = H - PAD.t - PAD.b;
 
 export default function NetWorthChart({ points }: { points: HistoryPoint[] }) {
+  const hidden = usePrivacy();
   const [hover, setHover] = useState<number | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
   if (points.length === 0) return <p className="muted">没有数据</p>;
 
-  const values = points.map((p) => p.net_worth);
+  // 隐私模式下改画收益率曲线：形状照旧，但看不出规模
+  const base = points[0].twr_index || 1;
+  const series = hidden
+    ? points.map((p) => (p.twr_index / base - 1) * 100)
+    : points.map((p) => p.net_worth);
+  const formatValue = (v: number) => (hidden ? `${v.toFixed(2)}%` : fmtCompact(v));
+
   const investValues = points.map((p) => p.invested);
-  let min = Math.min(...values, ...investValues);
-  let max = Math.max(...values, ...investValues);
+  let min = hidden ? Math.min(...series) : Math.min(...series, ...investValues);
+  let max = hidden ? Math.max(...series) : Math.max(...series, ...investValues);
   if (max - min < 1e-8) {
     min -= 1;
     max += 1;
@@ -30,8 +38,8 @@ export default function NetWorthChart({ points }: { points: HistoryPoint[] }) {
   const x = (i: number) => PAD.l + (points.length === 1 ? IW / 2 : (i / (points.length - 1)) * IW);
   const y = (v: number) => PAD.t + IH - ((v - min) / (max - min)) * IH;
 
-  const line = points.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p.net_worth).toFixed(1)}`).join(' ');
-  const area = `${line} L${x(points.length - 1).toFixed(1)},${(PAD.t + IH).toFixed(1)} L${x(0).toFixed(1)},${(PAD.t + IH).toFixed(1)} Z`;
+  const line = series.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  const area = `${line} L${x(series.length - 1).toFixed(1)},${(PAD.t + IH).toFixed(1)} L${x(0).toFixed(1)},${(PAD.t + IH).toFixed(1)} Z`;
   const investLine = points.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p.invested).toFixed(1)}`).join(' ');
 
   // 最大回撤区间：在图上用红色区块标出
@@ -80,7 +88,7 @@ export default function NetWorthChart({ points }: { points: HistoryPoint[] }) {
           <g key={i}>
             <line x1={PAD.l} y1={y(v)} x2={W - PAD.r} y2={y(v)} stroke="#2b3139" strokeWidth="1" />
             <text x={PAD.l - 8} y={y(v) + 4} textAnchor="end" className="axis">
-              {fmtCompact(v)}
+              {formatValue(v)}
             </text>
           </g>
         ))}
@@ -96,7 +104,9 @@ export default function NetWorthChart({ points }: { points: HistoryPoint[] }) {
         )}
 
         <path d={area} fill="url(#nwFill)" />
-        <path d={investLine} fill="none" stroke="#848e9c" strokeWidth="1.5" strokeDasharray="5 4" />
+        {!hidden && (
+          <path d={investLine} fill="none" stroke="#848e9c" strokeWidth="1.5" strokeDasharray="5 4" />
+        )}
         <path d={line} fill="none" stroke="#2f6fed" strokeWidth="2.2" strokeLinejoin="round" />
 
         <text x={PAD.l} y={H - 8} className="axis">
@@ -109,7 +119,14 @@ export default function NetWorthChart({ points }: { points: HistoryPoint[] }) {
         {hp && (
           <g>
             <line x1={x(hover!)} y1={PAD.t} x2={x(hover!)} y2={PAD.t + IH} stroke="#6b7684" strokeWidth="1" />
-            <circle cx={x(hover!)} cy={y(hp.net_worth)} r="3.5" fill="#2f6fed" stroke="#fff" strokeWidth="1.5" />
+            <circle
+              cx={x(hover!)}
+              cy={y(hidden ? (hp.twr_index / base - 1) * 100 : hp.net_worth)}
+              r="3.5"
+              fill="#2f6fed"
+              stroke="#fff"
+              strokeWidth="1.5"
+            />
           </g>
         )}
       </svg>
@@ -120,17 +137,25 @@ export default function NetWorthChart({ points }: { points: HistoryPoint[] }) {
           style={{ left: `${(x(hover!) / W) * 100}%`, top: 8 }}
         >
           <strong>{hp.day}</strong>
-          <span>总资产 {fmtUsdt(hp.net_worth)}</span>
-          <span>投入本金 {fmtUsdt(hp.invested)}</span>
-          <span className={hp.pnl >= 0 ? 'up' : 'down'}>收益 {fmtUsdt(hp.pnl)}</span>
+          {hidden ? (
+            <span className={hp.twr_index >= base ? 'up' : 'down'}>
+              收益率 {fmtPct(hp.twr_index / base - 1)}
+            </span>
+          ) : (
+            <>
+              <span>总资产 {fmtUsdt(hp.net_worth)}</span>
+              <span>投入本金 {fmtUsdt(hp.invested)}</span>
+              <span className={hp.pnl >= 0 ? 'up' : 'down'}>收益 {fmtUsdt(hp.pnl)}</span>
+            </>
+          )}
           <span>回撤 {(hp.drawdown * 100).toFixed(2)}%</span>
           {hp.estimated && <span className="stale">（该日缺价格，按成本估算）</span>}
         </div>
       )}
 
       <div className="chart-legend">
-        <span><i className="sw sw-net" /> 总资产</span>
-        <span><i className="sw sw-invest" /> 投入本金</span>
+        <span><i className="sw sw-net" /> {hidden ? '收益率' : '总资产'}</span>
+        {!hidden && <span><i className="sw sw-invest" /> 投入本金</span>}
         <span><i className="sw sw-dd" /> 最大回撤区间</span>
       </div>
     </div>

@@ -1,3 +1,6 @@
+/** 隐私模式下的打码占位 */
+export const MASK = '••••••';
+
 export const fmtUsdt = (n: number | null | undefined) =>
   n == null || !Number.isFinite(n) ? '—' : n.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 

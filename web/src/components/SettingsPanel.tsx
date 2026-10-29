@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { api, type State } from '../api';
+import { usePrivacy } from '../privacy';
 
 export default function SettingsPanel({ state, onChanged }: { state: State; onChanged: () => void }) {
+  const hidden = usePrivacy();
   const [capital, setCapital] = useState(String(state.settings.initial_capital_usdt));
   const [proxy, setProxy] = useState(state.settings.proxy_url ?? '');
   const [symbol, setSymbol] = useState('');
@@ -38,7 +40,12 @@ export default function SettingsPanel({ state, onChanged }: { state: State; onCh
       <div className="form">
         <label className="field field-money">
           <span>初始本金 USDT</span>
-          <input value={capital} onChange={(e) => setCapital(e.target.value)} inputMode="decimal" />
+          <input
+            type={hidden ? 'password' : 'text'}
+            value={capital}
+            onChange={(e) => setCapital(e.target.value)}
+            inputMode="decimal"
+          />
         </label>
         <label className="field field-grow">
           <span>行情代理地址</span>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { api, type Transaction } from '../api';
-import { fmtUsdt, fmtQty, fmtPrice, fmtTime } from '../format';
+import { fmtUsdt, fmtQty, fmtPrice, fmtTime, MASK } from '../format';
+import { usePrivacy } from '../privacy';
 
 const TYPE_LABEL: Record<string, string> = { BUY: '买入', SELL: '卖出', DEPOSIT: '入金', WITHDRAW: '出金' };
 const TYPE_CLASS: Record<string, string> = {
@@ -17,6 +18,7 @@ export default function TransactionList({
   transactions: Transaction[];
   onChanged: () => void;
 }) {
+  const hidden = usePrivacy();
   const [filter, setFilter] = useState('');
   const [undone, setUndone] = useState<Transaction | null>(null);
   const [confirmingId, setConfirmingId] = useState<number | null>(null);
@@ -32,8 +34,8 @@ export default function TransactionList({
 
   function describe(t: Transaction) {
     const parts = [TYPE_LABEL[t.type]];
-    if (t.symbol) parts.push(`${fmtQty(t.quantity)} ${t.symbol}`);
-    parts.push(`${fmtUsdt(t.total_usdt)} USDT`);
+    if (t.symbol) parts.push(hidden ? t.symbol : `${fmtQty(t.quantity)} ${t.symbol}`);
+    if (!hidden) parts.push(`${fmtUsdt(t.total_usdt)} USDT`);
     return parts.join(' · ');
   }
 
@@ -89,9 +91,10 @@ export default function TransactionList({
                   <span className={TYPE_CLASS[t.type]}>{TYPE_LABEL[t.type]}</span>
                 </td>
                 <td>{t.symbol ?? '—'}</td>
-                <td className="num">{fmtQty(t.quantity)}</td>
+                <td className="num">{hidden ? MASK : fmtQty(t.quantity)}</td>
+                {/* 成交价是公开市场价，留着；数量和金额打码 */}
                 <td className="num">{t.quantity ? fmtPrice(t.total_usdt / t.quantity) : '—'}</td>
-                <td className="num">{fmtUsdt(t.total_usdt)}</td>
+                <td className="num">{hidden ? MASK : fmtUsdt(t.total_usdt)}</td>
                 <td>{t.note ?? ''}</td>
                 <td>
                   {confirmingId === t.id ? (
