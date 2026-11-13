@@ -117,7 +117,7 @@ export function createHistoryService(db, priceService) {
       }
 
       let cash = initial;
-      let realized = 0;
+      let totalSold = 0;
       let invested = initial;
       const pos = new Map();
       let idx = 0;
@@ -142,17 +142,15 @@ export function createHistoryService(db, priceService) {
           } else if (t.type === 'WITHDRAW') {
             cash -= t.total_usdt; invested -= t.total_usdt; dayCashflow -= t.total_usdt;
           } else {
-            const p = pos.get(t.symbol) ?? { quantity: 0, cost_basis: 0 };
+            const p = pos.get(t.symbol) ?? { quantity: 0, net_cost: 0 };
             if (t.type === 'BUY') {
               cash -= t.total_usdt;
               p.quantity += t.quantity;
-              p.cost_basis += t.total_usdt;
+              p.net_cost += t.total_usdt;
             } else {
-              const avg = p.quantity > EPS ? p.cost_basis / p.quantity : 0;
-              const costOut = avg * t.quantity;
-              realized += t.total_usdt - costOut;
               cash += t.total_usdt;
-              p.cost_basis -= costOut;
+              totalSold += t.total_usdt;
+              p.net_cost -= t.total_usdt;
               p.quantity -= t.quantity;
             }
             pos.set(t.symbol, p);
@@ -160,19 +158,19 @@ export function createHistoryService(db, priceService) {
         }
 
         let marketValue = 0;
-        let costBasis = 0;
+        let netCost = 0;
         let estimated = false;
         for (const [symbol, p] of pos) {
           if (p.quantity <= EPS) continue;
           let price = priceMap.get(symbol)?.get(day);
           if (price == null) price = latestBefore.get(symbol, day)?.price_usdt;
           if (price == null) {
-            // 取不到历史价时用成本价兜底，保证曲线连续（该点标记为估算）
-            price = p.cost_basis / p.quantity;
+            // 取不到历史价时用净投入成本兜底，保证曲线连续（该点标记为估算）
+            price = p.net_cost / p.quantity;
             estimated = true;
           }
           marketValue += p.quantity * price;
-          costBasis += p.cost_basis;
+          netCost += p.net_cost;
         }
 
         const netWorth = cash + marketValue;
@@ -192,8 +190,8 @@ export function createHistoryService(db, priceService) {
           invested,
           market_value: marketValue,
           cash,
-          cost_basis: costBasis,
-          realized,
+          cost_basis: netCost,
+          total_sold: totalSold,
           pnl: netWorth - invested,
           twr_index: index,
           drawdown,

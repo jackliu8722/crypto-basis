@@ -12,14 +12,16 @@ export default function SummaryCards({ state }: { state: State }) {
     { label: 'USDT 余额', value: hidden ? MASK : fmtUsdt(state.cash_usdt), tone: state.cash_usdt < 0 ? 'down' : '' },
     { label: '持仓市值', value: hidden ? MASK : fmtUsdt(t.market_value_total), tone: '' },
     {
-      label: '浮动盈亏',
+      // 回本口径下这个数就是全部收益（卖出赚的已经并进来了）
+      label: '累计盈亏',
       value: hidden ? MASK : fmtSigned(t.unrealized_pnl_total),
       tone: (t.unrealized_pnl_total ?? 0) >= 0 ? 'up' : 'down',
     },
     {
-      label: '已实现盈亏',
-      value: hidden ? MASK : fmtSigned(t.realized_pnl_total),
-      tone: t.realized_pnl_total >= 0 ? 'up' : 'down',
+      // 纯参考值，不参与收益计算
+      label: '累计卖出 USDT',
+      value: hidden ? MASK : fmtUsdt(t.total_sold_usdt),
+      tone: '',
     },
     { label: '总投入本金', value: hidden ? MASK : fmtUsdt(t.invested_capital), tone: '' },
   ];

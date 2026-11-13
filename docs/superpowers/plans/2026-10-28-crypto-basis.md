@@ -1,5 +1,7 @@
 # crypto-basis Implementation Plan
 
+> **归档说明**：本文是 2026-10-28 的原始实施记录。成本口径已于 2026-11-13 改为「回本口径（净投入）」，因此 Task 3–7 中 `engine.js` 的计算片段与当前实现不一致，请以 `README.md` 与 `docs/superpowers/specs/2026-10-28-crypto-basis-design.md` 为准。其余架构、文件结构与流程仍然有效。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 构建一个本地 Web 应用，手工录入 USDT 计价的现货买卖，自动算出每个币的持仓成本、市值与收益率。

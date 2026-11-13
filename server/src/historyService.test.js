@@ -73,7 +73,7 @@ test('入金不产生收益：TWR 剔除现金流', () => {
   assert.equal(r.max_drawdown, 0);
 });
 
-test('卖出后已实现盈亏计入，且不再受价格波动影响', () => {
+test('卖出后净值不再受价格波动影响', () => {
   const { db, hs } = setup();
   setPrices(db, 'BTC', { '2026-01-01': 10000, '2026-01-02': 12000, '2026-01-03': 9000 });
   const r = hs.series({
@@ -86,7 +86,7 @@ test('卖出后已实现盈亏计入，且不再受价格波动影响', () => {
     toDay: '2026-01-03',
   });
   assert.deepEqual(r.points.map((p) => p.net_worth), [10000, 12000, 12000]); // 卖光后不再波动
-  assert.equal(r.points[2].realized, 2000);
+  assert.equal(r.points[2].total_sold, 12000);
   assert.equal(r.max_drawdown, 0);
 });
 

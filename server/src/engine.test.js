@@ -15,7 +15,7 @@ test('单次买入：持仓数量、成本、现金扣减', () => {
   assert.equal(s.positions[0].avg_cost, 60000);
 });
 
-test('多次买入：移动加权平均成本', () => {
+test('多次买入：按累计买入金额算成本均价', () => {
   const s = computeState({
     transactions: [
       { id: 1, ts: '2026-01-01T00:00:00Z', type: 'BUY', symbol: 'BTC', quantity: 1, total_usdt: 60000 },
@@ -30,7 +30,7 @@ test('多次买入：移动加权平均成本', () => {
   assert.equal(s.cash_usdt, 60000);
 });
 
-test('部分卖出：已实现盈亏正确，剩余均价不变', () => {
+test('部分卖出：卖回的钱冲减成本，剩余均价下降', () => {
   const s = computeState({
     transactions: [
       { id: 1, ts: '2026-01-01T00:00:00Z', type: 'BUY', symbol: 'BTC', quantity: 2, total_usdt: 120000 },
@@ -40,25 +40,64 @@ test('部分卖出：已实现盈亏正确，剩余均价不变', () => {
     prices: {},
   });
   assert.equal(s.positions[0].quantity, 1.5);
-  assert.equal(s.positions[0].avg_cost, 60000); // 卖出不降低剩余成本价
-  assert.equal(s.positions[0].cost_basis, 90000);
-  assert.equal(s.totals.realized_pnl_total, 15000); // 45000 - 60000*0.5
+  assert.equal(s.positions[0].cost_basis, 75000); // 120000 - 45000
+  assert.equal(s.positions[0].avg_cost, 50000); // 75000 / 1.5
+  assert.equal(s.totals.total_sold_usdt, 45000);
   assert.equal(s.cash_usdt, 75000); // 150000 - 120000 + 45000
 });
 
-test('全部卖出：持仓归零，已实现盈亏保留', () => {
+test('全部卖出：净投入为负时，收益仍计入盈亏而不丢失', () => {
   const s = computeState({
     transactions: [
       { id: 1, ts: '2026-01-01T00:00:00Z', type: 'BUY', symbol: 'ETH', quantity: 10, total_usdt: 30000 },
       { id: 2, ts: '2026-02-01T00:00:00Z', type: 'SELL', symbol: 'ETH', quantity: 10, total_usdt: 35000 },
     ],
     settings: { initial_capital_usdt: 30000 },
-    prices: {},
+    prices: { ETH: { price: 3000, stale: false } },
   });
   assert.equal(s.positions[0].quantity, 0);
-  assert.equal(s.positions[0].cost_basis, 0);
-  assert.equal(s.totals.realized_pnl_total, 5000);
+  assert.equal(s.positions[0].cost_basis, -5000); // 30000 - 35000
+  assert.equal(s.positions[0].unrealized_pnl, 5000); // 0 市值 - (-5000)
+  assert.equal(s.positions[0].unrealized_pnl_pct, null); // 成本为负，收益率不显示
+  assert.equal(s.totals.total_sold_usdt, 35000);
   assert.equal(s.cash_usdt, 35000);
+});
+
+test('用户场景：100 买 2 个，涨到 110 卖 1 个', () => {
+  const s = computeState({
+    transactions: [
+      { id: 1, ts: '2026-01-01T00:00:00Z', type: 'BUY', symbol: 'X', quantity: 2, total_usdt: 200 },
+      { id: 2, ts: '2026-01-02T00:00:00Z', type: 'SELL', symbol: 'X', quantity: 1, total_usdt: 110 },
+    ],
+    settings: { initial_capital_usdt: 200 },
+    prices: { X: { price: 110, stale: false } },
+  });
+  const p = s.positions[0];
+  assert.equal(p.quantity, 1);
+  assert.equal(p.cost_basis, 90); // 200 - 110
+  assert.equal(p.avg_cost, 90);
+  assert.equal(p.market_value, 110);
+  assert.equal(p.unrealized_pnl, 20);
+  assert.equal(p.unrealized_pnl_pct.toFixed(4), '0.2222');
+  assert.equal(s.totals.total_sold_usdt, 110);
+  // 账必须平：盈亏 = 净资产 - 总投入
+  assert.equal(s.totals.unrealized_pnl_total, s.totals.net_worth - s.totals.invested_capital);
+  assert.equal(s.totals.net_worth - s.totals.invested_capital, 20);
+});
+
+test('超额回本：净投入为负时收益率显示 — 而不是荒谬数字', () => {
+  const s = computeState({
+    transactions: [
+      { id: 1, ts: '2026-01-01T00:00:00Z', type: 'BUY', symbol: 'X', quantity: 2, total_usdt: 200 },
+      { id: 2, ts: '2026-01-02T00:00:00Z', type: 'SELL', symbol: 'X', quantity: 1, total_usdt: 300 },
+    ],
+    settings: { initial_capital_usdt: 200 },
+    prices: { X: { price: 110, stale: false } },
+  });
+  assert.equal(s.positions[0].cost_basis, -100);
+  assert.equal(s.positions[0].avg_cost, -100);
+  assert.equal(s.positions[0].unrealized_pnl_pct, null);
+  assert.equal(s.positions[0].unrealized_pnl, 210);
 });
 
 test('入金出金计入总投入本金，不影响持仓', () => {
@@ -106,7 +145,7 @@ test('市值、浮盈、收益率、占比', () => {
   assert.equal(p.weight, 75000 / 115000); // 占比分母是净资产（含现金）
 });
 
-test('无价格时市值与浮盈为 null，不影响现金与已实现', () => {
+test('无价格时市值与盈亏为 null，不影响现金', () => {
   const s = computeState({
     transactions: [
       { id: 1, ts: '2026-01-01T00:00:00Z', type: 'BUY', symbol: 'BTC', quantity: 1, total_usdt: 60000 },
@@ -118,7 +157,7 @@ test('无价格时市值与浮盈为 null，不影响现金与已实现', () => 
   assert.equal(s.positions[0].market_value, null);
   assert.equal(s.positions[0].unrealized_pnl, null);
   assert.equal(s.cash_usdt, 106000);
-  assert.equal(s.totals.realized_pnl_total, 6000);
+  assert.equal(s.totals.total_sold_usdt, 66000);
 });
 
 test('无价格的持仓会在 warnings 中提示', () => {

@@ -20,6 +20,7 @@ export type Position = {
   price_stale: boolean;
   inconsistent: boolean;
   weight: number | null;
+  /** 净投入 ≤ 0（已回本）时收益率无意义，为 null */
 };
 
 export type State = {
@@ -32,7 +33,7 @@ export type State = {
     market_value_total: number;
     cost_basis_total: number;
     unrealized_pnl_total: number | null;
-    realized_pnl_total: number;
+    total_sold_usdt: number;
     net_worth: number;
     roi_pct: number | null;
   };
@@ -47,7 +48,7 @@ export type HistoryPoint = {
   market_value: number;
   cash: number;
   cost_basis: number;
-  realized: number;
+  total_sold: number;
   pnl: number;
   twr_index: number;
   drawdown: number;

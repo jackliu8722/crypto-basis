@@ -53,7 +53,7 @@ export default function PositionsTable({
                 <th>均价</th>
                 <th>现价</th>
                 <th>市值</th>
-                <th>浮盈</th>
+                <th>盈亏</th>
                 <th>收益率</th>
                 <th>占比</th>
               </tr>

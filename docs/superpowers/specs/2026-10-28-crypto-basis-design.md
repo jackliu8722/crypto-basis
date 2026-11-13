@@ -95,26 +95,27 @@ computeState(transactions, settings, priceMap) => State
 
 不读数据库、不发网络请求，输入决定输出，因此可单测。
 
+> **2026-11-13 变更**：成本口径由「标准口径」改为「回本口径（净投入）」。这是纯计算逻辑调整，`transactions` 表结构无需改动、已有数据无需迁移。以下按当前实现描述。
+
 ### 重放流程
 
 取 `deleted_at IS NULL` 的记录，按 `ts ASC, id ASC` 排序后依次应用：
 
 **BUY**
 ```
-cash            -= total_usdt
-qty             += quantity
-cost_basis      += total_usdt
-avg_cost         = cost_basis / qty
+cash       -= total_usdt
+qty        += quantity
+net_cost   += total_usdt
 ```
 
 **SELL**
 ```
-realized        += total_usdt - avg_cost * quantity
-cash            += total_usdt
-cost_basis      -= avg_cost * quantity
-qty             -= quantity
+cash       += total_usdt
+total_sold += total_usdt
+net_cost   -= total_usdt     // 卖回的钱直接冲减净投入
+qty        -= quantity
 ```
-卖出按当前均价扣减成本，**剩余持仓的均价不变**（移动加权平均的定义）。
+卖出的钱冲减成本，所以**剩余持仓的成本均价会下降**。数量归零时只把 `qty` 归零，`net_cost` 保留（清仓后为负代表累计赚了多少，这部分收益仍要计入盈亏）。
 
 **DEPOSIT**  `cash += total_usdt`
 **WITHDRAW** `cash -= total_usdt`
@@ -124,17 +125,21 @@ qty             -= quantity
 单币：
 
 - `market_value = qty × current_price`
-- `unrealized_pnl = market_value − cost_basis`
-- `unrealized_pnl_pct = (current_price − avg_cost) / avg_cost`
+- `cost_basis = net_cost`（净投入）
+- `avg_cost = qty > 0 ? net_cost / qty : 0`
+- `unrealized_pnl = market_value − net_cost`
+- `unrealized_pnl_pct = net_cost > 0 ? (current_price − avg_cost) / avg_cost : null`
 
 全局：
 
 - `cash_usdt` USDT 余额
 - `invested_capital = initial_capital + deposits − withdraws` 总投入本金
 - `net_worth = cash_usdt + Σ market_value` 净资产
-- `total_unrealized = Σ unrealized_pnl` 浮动盈亏
-- `total_realized` 已实现盈亏（卖出累计，不冲减浮盈）
+- `unrealized_pnl_total = Σ unrealized_pnl` 累计盈亏（已包含全部收益）
+- `total_sold_usdt` 累计卖出金额，纯参考值，不参与收益计算
 - `roi_pct = (net_worth − invested_capital) / invested_capital` 总收益率
+
+**不再单独记「已实现盈亏」**：卖出赚的钱已提前冲进净投入，再单列会重复计算。
 
 ### 边界规则
 
@@ -142,9 +147,11 @@ qty             -= quantity
 
 **买入时 USDT 余额可以为负**：允许保存，UI 上把余额标红并提示"余额为负，可能漏记入金"。因为初始本金可能没填准，硬拒绝反而碍事。
 
-**数量为 0 的持仓**默认从持仓表隐藏，汇总区提供"显示已清仓"开关（已实现盈亏保留可见）。
+**数量为 0 的持仓**默认从持仓表隐藏，汇总区提供"显示已清仓"开关。清仓后 `net_cost` 可能为负，其收益仍计入汇总盈亏，不因隐藏而丢失。
 
-**成本价口径说明**：采用标准会计口径——卖出不降低剩余持仓的成本价。另一种常见口径（"回本口径"：成本 = 总买入 − 总卖出）会让成本价随卖出下降，但超额回本后成本价变负、收益率公式失效。两种口径的**总收益一致**，只是浮盈/已实现的切分不同。本工具用标准口径保证收益率公式始终有效。
+**超额回本时收益率显示 `—`**：`net_cost ≤ 0` 时 `(现价 − 成本价) / 成本价` 失真，返回 `null`；盈亏金额照常显示，且始终满足 `Σ 盈亏 = 净资产 − 总投入`。
+
+**口径取舍**：另一种「标准口径」（卖出不冲减成本、另记已实现盈亏）的总收益完全相同，只是收益归属不同。用户于 2026-11-13 明确选择回本口径。
 
 **精度**：金额用 `number` 计算，展示时 USDT 保留 2 位小数、币数量保留 8 位。数量比较用 `1e-8` 容差判定是否为 0。不追求分位级精确。
 
@@ -221,10 +228,10 @@ GET    /api/export?format=json|csv     导出流水与持仓
 单页，四个区块：
 
 **1. 顶部汇总卡片**
-净资产 · 总收益率 · USDT 余额 · 持仓市值 · 浮动盈亏 · 已实现盈亏 · 总投入本金
+净资产 · 总收益率 · USDT 余额 · 持仓市值 · 累计盈亏 · 累计卖出 USDT · 总投入本金
 
 **2. 持仓表格**
-币种 · 数量 · 均价 · 现价（带"3 分钟前"或灰色"已过期"标记）· 市值 · 浮盈 · 收益率 · 占比
+币种 · 数量 · 均价 · 现价（带"3 分钟前"或灰色"已过期"标记）· 市值 · 盈亏 · 收益率 · 占比
 
 占比分母为**净资产**（含 USDT 现金），所以各持仓占比之和 ≤ 100%，差额就是现金占比。持仓表底部固定显示一行「USDT 现金」及其占比，使整表相加为 100%。
 
@@ -257,8 +264,9 @@ GET    /api/export?format=json|csv     导出流水与持仓
 
 - 单次买入：数量、成本、现金扣减
 - 多次买入：加权均价正确
-- 部分卖出：已实现盈亏正确，剩余均价不变
-- 全部卖出：持仓归零，已实现保留
+- 部分卖出：卖回的钱冲减净投入，剩余均价下降
+- 全部卖出：净投入为负时收益仍计入盈亏，不丢失
+- 超额回本：净投入 ≤ 0 时收益率为 null
 - 卖出超过持仓：被拒绝
 - 入金/出金：现金与"总投入本金"正确
 - 删除一笔后重放：数字与未录该笔时完全一致
